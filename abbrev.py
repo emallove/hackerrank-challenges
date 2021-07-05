@@ -65,6 +65,9 @@ import sys
 #  2. STRING b
 #
  
+
+memo = dict()
+
 # Change first lowercased letter to an upper-case letter
 def upperFirstLower(s):
  
@@ -87,19 +90,22 @@ def delFirstLower(s):
  
   return s
   
-def upperOrDelete(frag, target):
+def _abbrev(frag, target):
   
-    print("\n")
-    print("frag = ", frag)
-    print("target = ", target)
-
+  
+    k = "".join(frag)
+    if k in memo:
+      return memo[k]
+  
     # We found a match!
     if "".join(frag) == "".join(target):
+      memo[k] = True
       return True
     
-    # It's not a match, and it can't be modified (because it's all uppercase),
+    # If it's not a match, and it can't be modified (because it's all uppercase),
     # then game over.
     elif "".join(frag).isupper():
+      memo[k] = False
       return False
 
     frag1 = frag.copy()
@@ -109,17 +115,22 @@ def upperOrDelete(frag, target):
     frag2 = delFirstLower(frag2)
  
     # Uppercased char recursion
-    r1 = upperOrDelete(frag1, target)
+    r1 = _abbrev(frag1, target)
+    k = "".join(frag1)
+    memo[k] = r1
 
     # Deleted char recursion
-    r2 = upperOrDelete(frag2, target)
+    r2 = _abbrev(frag2, target)
+    k = "".join(frag2)
+    memo[k] = r2
 
     return r1 or r2
 
 def abbreviation(a, b):
  
-    r = upperOrDelete(list(a), list(b))
-    print("r = ", r)
+    memo.clear()
+
+    r = _abbrev(list(a), list(b))
     
     if r:
       return "YES"
@@ -141,4 +152,3 @@ if __name__ == '__main__':
         fptr.write(result + '\n')
 
     fptr.close()
-
