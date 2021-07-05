@@ -48,6 +48,8 @@
 # lowercase letters in  so that  ABC.  Because we were able to successfully
 # convert  to , we print YES on a new line.
 
+#!/bin/python3
+
 import math
 import os
 import random
@@ -97,11 +99,14 @@ def traverse_grid(a, b):
       if (i >= len(a)) or (j >= len(b)):
         break
 
-      print("line 62:i = ", i)
-      print("line 62:j = ", j)
+      print("line 52: i = ", i)
+      print("line 52: j = ", j)
 
       # effectively change the letter, if it's lower          
       if (a[i] == b[j]) or (a[i].upper() == b[j]):
+
+        print("line 58: a[i] = ", a[i])
+        print("line 58: b[j] = ", b[j])
 
         i += 1
         j += 1
@@ -114,16 +119,42 @@ def traverse_grid(a, b):
   
     return True
  
+def upperOrDelete(frag, target):
+
+    print("frag = ", frag)
+    print("target = ", target)
+
+    if "".join(frag) == "".join(target):
+      return True
+
+    if "".join(frag) == "":
+      return True
+
+    if (frag[0].islower()):
+ 
+      if len(frag) > 0:
+
+        char1 = [frag[0].upper()]
+        frag1 = char1 + frag[1:len(frag)]
+        frag2 =  frag[1:len(frag)]
+ 
+        print("frag1 = ", frag1)
+        print("frag2 = ", frag2)
+
+        # Uppercased char recursion
+        r1 = upperOrDelete(frag1, target)
+
+        # Deleted char recursion
+        r2 = upperOrDelete(frag2, target)
+
+      else:
+        return False
+      
+      return r1 or r2
+
 def abbreviation(a, b):
  
-    # Write your code here
-    al = list(a)
-    bl = list(b)
-    print("al = ", al)
-    print("b1 = ", bl)
- 
-    #print_grid(grid, al, bl)
-    r = traverse_grid(al, bl)
+    r = upperOrDelete(list(a), list(b))
     print("r = ", r)
     
     if r:
