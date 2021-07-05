@@ -65,8 +65,10 @@ import sys
 #  2. STRING b
 #
  
+counter = 0
 
 memo = dict()
+possible = False
 
 # Change first lowercased letter to an upper-case letter
 def upperFirstLower(s):
@@ -90,18 +92,58 @@ def delFirstLower(s):
  
   return s
   
+def listToString(L):
+  return "".join(L)
+
 def _abbrev(frag, target):
-  
-  
-    k = "".join(frag)
+
+    global counter
+    global memo
+    global possible
+
+    counter += 1
+    print("counter = ", counter)
+
+    print("frag = ", frag)
+    print("target = ", target)
+
+    print("listToString(frag) = ", listToString(frag))
+    print("listToString(target) = ", listToString(target))
+
+    if possible:
+      return True
+
+    k = listToString(frag)
     if k in memo:
       return memo[k]
   
+    if len(frag) < len(target):
+      return False
+    
+    print("frag[len(target) = ", listToString(frag[len(target)+1:]))
+
+    print('listToString(frag).startswith(listToString(target)) = ', listToString(frag).startswith(listToString(target)))
+
     # We found a match!
-    if "".join(frag) == "".join(target):
+    if listToString(frag) == listToString(target):
+      print("Found a memo match")
       memo[k] = True
+      possible = True
       return True
     
+    # If we start with a match, and the tail is all lower (deletable), it's a match
+    elif listToString(frag).startswith(listToString(target)) and listToString(frag[len(target)+1:]).islower():
+      print("Drop the tail")
+      memo[k] = True
+      possible = True
+      return True
+    
+    # If the first letter's an upper and it doesn't match the first letter
+    # in the target, then game over.
+    elif frag[0].isupper() and (frag[0] != target[0]):
+      memo[k] = False
+      return False
+
     # If it's not a match, and it can't be modified (because it's all uppercase),
     # then game over.
     elif "".join(frag).isupper():
@@ -110,45 +152,112 @@ def _abbrev(frag, target):
 
     frag1 = frag.copy()
     frag2 = frag.copy()
-    
+
     frag1 = upperFirstLower(frag1)
     frag2 = delFirstLower(frag2)
  
+    print("frag1 = ", frag1)
+    print("frag2 = ", frag2)
+    
+    # Deleted char recursion (go down the path of shorter strings first)
+    r2 = _abbrev(frag2, target)
+    k = "".join(frag2)
+    memo[k] = r2
+
     # Uppercased char recursion
     r1 = _abbrev(frag1, target)
     k = "".join(frag1)
     memo[k] = r1
 
-    # Deleted char recursion
-    r2 = _abbrev(frag2, target)
-    k = "".join(frag2)
-    memo[k] = r2
+    # The or of frag1 and frag2
+    k = "".join(frag)
+    memo[k] = r1 or r2
 
     return r1 or r2
 
 def abbreviation(a, b):
+  
+    global counter
+    global memo
+    global possible
+
+    print("a = ", a)
+    print("b = ", b)
  
     memo.clear()
 
     r = _abbrev(list(a), list(b))
     
     if r:
+      print("YES")
       return "YES"
     else:
+      print("NO")
       return "NO"
 
-if __name__ == '__main__':
-    fptr = open(os.environ['OUTPUT_PATH'], 'w')
+# Test case 8
 
-    q = int(input().strip())
+print("starting test case 8\n")
 
-    for q_itr in range(q):
-        a = input()
+# a =  "AfPZN"
+# b =  "APZNC"
+# abbreviation(a, b)
+# exit()
+# 
+# a = "abaaA"
+# b = "AA"
+# abbreviation(a, b)
+# exit()
 
-        b = input()
+# Expected output:
+#   YES
+#   YES
+#   YES
+#   YES
+#   NO
+#   YES
+#   YES
+#   NO
+#   NO
+#   YES
 
-        result = abbreviation(a, b)
+a = "OPZFFVQLADBQFBXLOSUMZZWQUKASCUVQZZVWfPIRTytlvpijddqegbwitkhhsbuehtnpndvcandzjzyepvlnkayfkwzegvbratvwezddjqxrxocqgcghuohlmsondvicocltqhvqfqjpctxfomjoukrheijhhndcbipiobvpbskemgykepokluwqhhejdaimvdvlegfyrrwckgojsbsxmsvhhrlnvcrxfaxinjzsjgvvrlcczqlkvgtftsvktvhtfpaklumhkovphilrappbvkarfhvwxxtrugypracozyqyvaqjityoiyemyavpbchaoagrvujocpueczsgcqdjvkjckxhmnaseshjgecusrxozuxgeieleewwskmiprlqnshvmcp"
+b = "OPZFFVQLADBQFBXLOSUMZZWQUKASCUVQZZVWPIRT"
+abbreviation(a, b)
+exit()
 
-        fptr.write(result + '\n')
+a = "WLWlVFFTKWXXVNXUAHAWBKCQMKEHKSJNLLISGUWMDTkURJTLXyJFEHQYTCuRFXRDHSFPIRCCQSDRRHCSDPKXGOCHFAWKPGMCZICTFFTNZBANHHELBMAWVPRekbsqbxqqwsizsjnnorxamaoudznbaqanqtucsrouxcdxfqahygyupaxfvtvigahlkpoduwmgvbvwshvazgsjkimnbjvzvwtdlomsfatfxxsfdvxcyfiycehomhhaaginwnrtoqtkhvmjikzymaqppjbtjomfjn"
+b = "WLWVFFTKWXXVNXUAHAWBKCQMKEHKSJNLLISGUWMDTURJTLXJFEHQYTCRFXRDHSFPIRCCQSDRRHCSDPKXGOCHFAWKPGMCZICTFFTNZBANHHELBMAWVPR"
+abbreviation(a, b)
 
-    fptr.close()
+a = "PDXCyKDOkWPOTXQUEQHOEIaIAROHeAXrGISVQbnksreozjryuzlttptkufhzaqejqszwsscpsbrfjrqaixtfvazzihgrnkgrultyewhaniegnzqapbzugermphypdryqcobcglcytzcysjbuchazswrvckkmwgityneeyqeflcyhesmdhsskudnsuqtlvpplothlpilpffyuyvnjvymiwrrqappuwbinbgcb"
+b = "PDXCKDOWPOTXQUEQHOEIIAROHAXGISVQ"
+abbreviation(a, b)
+
+a = "RUJNEGMMMEGIRGILRHKWKSNZWMQAFKISNVVBOVNZBHRITDHZIKHXuZRRJOVNHIKLBIZTTHQCDRDDPQIWIJRAKXSAFKNZQQTUCGYBKKIFJBKYDLICJZZCDSHRCKRNXTNZAKNNFPLCLBMJJGOZLIIJYFIMYHPNHLXGZICXOCDNWKKEMGOSJUGVXIEGBWLNGXUQNBWKJIUURRBZYBKEVUSDUpAUQKVANNJWNJZZAIJCYTJPUMIYAFJKBBCEDOGWVUCTBRhHXTTZDFTPYTypxornxsclmxzsuwaqlsjwpztodbwnowpplxcvbpubodwobdlwphmcyenwdjwdzwblrejfhvoprxsiekxz"
+b = "RUJNEGMMMEGIRGILRHKWKSNZWMQAFKISNVVBOVNZBHRITDHZIKHXZRRJOVNHIKLBIZTTHQCDRDDPQIWIJRAKXSAFKNZQQTUCGYBKKIFJBKYDLICJZZCDSHRCKRNXTNZAKNNFPLCLBMJJGOZLIIJYFIMYHPNHLXGZICXOCDNWKKEMGOSJUGVXIEGBWLNGXUQNBWKJIUURRBZYBKEVUSDUAUQKVANNJWNJZZAIJCYTJPUMIYAFJKBBCEDOGWVUCTBRHXTTZDFTPYT"
+abbreviation(a, b)
+
+a = "CIVQEESyFYnGDSSUUUGMPXYUKRMLXRXtWAWKQRUWCXKBMTGDOWSPRFOCUOETTLIWeXTUHSSPWYQKJSIlRJGOIDARFIILFXQUBCXUQHJCtJXTJBOSJKJUAIFaBVQWBXWZIYRMYOCVYGTCJJjDMBAESZlXMDPIREZHVJGJQHAFQGGXLzIEAPcZGBOEHDXQIUDfBEYQOjTYJUJVTWEIXcBUYEyXHPDYAEHOZDPHAQAYEQNKoVBOOMTUOJHyFOLRmVKMwFVCJMTAMFVPAGYYIBZZLCPJYXLWXMHLVXXQOGSZKGZZOENOSNHJNOMXxNMRZGODIUnEZGRDFLNuZJASKXHMSJGIWGIUYWPPXQQZYDSISXFQRPLHFPHMZMGMVOLXeJWYZOZUEOHWZOFUQEGEGLPRISELSNHIGDlLqEDCCDJYKAFTLLPIYUQENFuWJJFHUAECO"
+b = "CIVQEESFYGDSSUUUGMPXYUKRMLXRXWAWKQRUWCXKBMTGDOWSPRFOCUOETTLIWXTUHSSPWYQKJSIRJGOIDARFIILFXQUBCXUQHJCJXTJBOSJKJUAIFBVQWBXWZIYRMYOCVYGTCJJDMBAESZXMDPIREZHVJGJQHAFQGGXLIEAPZGBOEHDXQIUDBEYQOTYJUJVTWEIXBUYEXHPDYAEHOZDPHAQAYEQNKVBOOMTUOJHFOLRVKMFVCJMTAMFVPAGYYIBZZLCPJYXLWXMHLVXXQOGSZKGZZOENOSNHJNOMXNMRZGODIUEZGRDFLNZJASKXHMSJGIWGIUYWPPXQQZYDSISXFQRPLHFPHMZMGMVOLXJWYZOZUEOHWZOFUQEGEGLPRISELSNHIGDLEDCCDJYKAFTLLPIYUQENFWJJFHUAECOMN"
+abbreviation(a, b)
+
+a = "VUWELCNJMNWLMJLZRASXaZCTBXKLLELZNWNZXNBTAPKRBBsXBJHMBDPDQDIFCXHXWNVMTFHSNAJhRSUAIAXLNICSBCIOLOAMAOAPGJVXEFBGEFCKQzMAFTVZKMGIXEKVWMbQPZTFHVLSQGBXEaFRKAMMICCGDPXWGZTGJWRCRBQIpCRBIAYRDXLMWNGEUMELKAZANQBLKTTVKQJOSZRNHUJBNDFTNFJVUNrGWKWALLBERYEgXMSXRMWHKQIFRQELUHOFGVyLESCNBWOSTOPRQYIDDTWNUCrBOOUMTLKNDRXTDPGQQERPFRJQEGEFLDUayvvmqaaypkxezuhsopxexsnfdaxc"
+b = "VUWELCNJMNWLMJLZRASXZCTBXKLLELZNWNZXNBTAPKRBBXBJHMBDPDQDIFCXHXWNVMTFHSNAJRSUAIAXLNICSBCIOLOAMAOAPGJVXEFBGEFCKQMAFTVZKMGIXEKVWMQPZTFHVLSQGBXEFRKAMMICCGDPXWGZTGJWRCRBQICRBIAYRDXLMWNGEUMELKAZANQBLKTTVKQJOSZRNHUJBNDFTNFJVUNGWKWALLBERYEXMSXRMWHKQIFRQELUHOFGVLESCNBWOSTOPRQYIDDTWNUCBOOUMTLKNDRXTDPGQQERPFRJQEGEFLDU"
+abbreviation(a, b)
+
+a = "ETAUMPZFGJVEUUBFDIMJPMOCRQXMMMYPUKFRJLCXOCLMUMMUHQNKIAZSKHRLPNhRRPmNIBNCHRZBYWAPUNMDFGPDKQUBZYPEIZILJEHNZGHSNSRZACYCKQSSFHEDYCMVAovcuyjahwtmgcctvjqnpgwrurwnmbifbtyqyuoafezegpecjgmkwfstjwlkromioak"
+b = "ETAUMPZFGJVEUUBFDIMJPMOCRQXMMMYPUKFRJLCXOCLMUMMUHQNKIAZSKHRLPNRRPNIBNCHRZBYWAPUNMDFGPDKQUBZYPEIZILJEHNZGHSNSRZACYCKQSSFHEDYCMVA"
+abbreviation(a, b)
+
+a = "KBJYYWPSOMDASRHPARGRyOZaAOEWVDTRWRKVGsgRWeVWCUVTCLYLGLZQAUHOOLJKPUCTCYJIWOKkEGRAOJAQLZABAYXHBdLptHZYVFMZCCGAQJShlHXHVCZFCBGPZDZGQHFVGLHBBvDNSUPYNJMOYHZMXRAHUZHCjNtTWSJGDUKJbRBgJRTVtHGHLKKTHBMtPMQVTKNRNOlSCBMXWJJZHFTHBNMNOBBYQTDXREdHwVBHQqKUSEDVYAEcYLGGvQKaUORVFUOFPTXGGQiLOKFRkGXBYNEQZXDFQBmPvFBUFEBNOFVQHjRJVQHsPJNXBOTKLMVRDPHXNNHwVPlKQJLWUYYAFOIUNhARELQUaBYxHRFqXGLRMFGOMPRKLZLRNRJDLJHDLMHKALTKSW"
+b = "KBJYYWPSOMDASRHPARGROZAOEWVDTRWRKVGRWVWCUVTCLYLGLZQAUHOOLJKPUCTCYJIWOKEGRAOJAQLZABAYXHBLHZYVFMZCCGAQJSHXHVCZFCBGPZDZGQHFVGLHBBDNSUPYNJMOYHZMXRAHUZHCNTWSJGDUKJRBJRTVHGHLKKTHBMPMQVTKNRNOSCBMXWJJZHFTHBNMNOBBYQTDXREHVBHQKUSEDVYAEYLGGQKUORVFUOFPTXGGQLOKFRGXBYNEQZXDFQBPFBUFEBNOFVQHRJVQHPJNXBOTKLMVRDPHXNNHVPKQJLWUYYAFOIUNARELQUBYHRFXGLRMFGOMPRKLZLRNRJDLJHDLMHKALTKSWGTVBRLNKGBW"
+abbreviation(a, b)
+
+a = "UZJMUCYHpfeoqrqeodznwkxfqvzktyomkrVyzgtorqefcmffauqhufkpptaupcpxguscmsbvolhorxnjrheqhxlgukjmgncwyastmtgnwhrvvfgbhybeicaudklkyrwvghpxbtpyqioouttqqrdhbinvbywkjwjkdiynvultxxxmwxztglbqitxmcgiusfewmsvxchkryzxipbmgrnqhfmlghomfbsKjglimxuobomfwutwfcmklzcphbbfohnaxgbaqbgocghaaizyhlctupndmlhwwlxxvighhjjrctcjBvxtagxbhrbrWwsyiiyebdgyfrlztoycxpjcvmzdvfeYqaxitkfkkxwybydcwsbdiovrqwkwzbgammwslwmdesygopzndedsbdixvi"
+b = "UZJMUCYH"
+abbreviation(a, b)
+
+a = "AITDVQYyBXUHBBTXvJOCCHGHXPWOYEHSKNAQHSDIWJHKDYMODFAYKNYAJUFCQZPAVTZYPbJFRDYSuDNYMFRKADBTQOBXSNeWDQYHBSLMTDdZiUJECURIEBZPNRByMAQNNGXGHAWTOKAKOAVgPDEAOEPSZHGNISBHVLIDRMNAFBHGPBYRhdJEPKLOOlYnJYXEOSWCOGEEWJDPKQXEDGUSZSAYzWLWQEVFHBTLAFTFZTXkQJWEHVaRFNTAEQDJVYKSBAFNUfGJMByRKINGTSLBIEDCMFOHGmICOCKGPZXHglLBUWUUTTSBNVQceMIEwKAOWAANJYqYKoYIOXtYHDKDNVVZOKPJvTLKoKBJMAEMSVUFKYQTSGXNDQLEAdUAzIXGOSWCLXFVTAWSQDWDCLdARUIQRFRSMBQACKAGLMGYFCCJMTLSOEPJXIIIZSPBXvHeYFVMjcarjwckioyvkzzjfytwcqzkrqukjxhvmywrcbulvznma"
+b = "AITDVQYBXUHBBTXJOCCHGHXPWOYEHSKNAQHSDIWJHKDYMODFAYKNYAJUFCQZPAVTZYPJFRDYSDNYMFRKADBTQOBXSNWDQYHBSLMTDZUJECURIEBZPNRBMAQNNGXGHAWTOKAKOAVPDEAOEPSZHGNISBHVLIDRMNAFBHGPBYRJEPKLOOYJYXEOSWCOGEEWJDPKQXEDGUSZSAYWLWQEVFHBTLAFTFZTXQJWEHVRFNTAEQDJVYKSBAFNUGJMBRKINGTSLBIEDCMFOHGICOCKGPZXHLBUWUUTTSBNVQMIEKAOWAANJYYKYIOXYHDKDNVVZOKPJTLKKBJMAEMSVUFKYQTSGXNDQLEAUAIXGOSWCLXFVTAWSQDWDCLARUIQRFRSMBQACKAGLMGYFCCJMTLSOEPJXIIIZSPBXHYFVM"
+abbreviation(a, b)
