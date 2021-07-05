@@ -64,93 +64,57 @@ import sys
 #  1. STRING a
 #  2. STRING b
 #
-
-def traverse_grid(a, b):
-    i = 0
-    j = 0
-
-    while (i <= len(a)) and (j <= len(b)):
-
-      # We've gone off the lower-right diagonal of the grid
-      if i >= len(a) and j >= len(b):
-        return True
-
-      print("line 38:  i = ", i)
-      print("line 38:  j = ", j)
-
-      # We exhausted just one of the lists, so we're 
-      if i >= len(a):
-        # We CAN NOT delete a trailing capital letter
-        if b[j].isupper():
-          return False
-        # We CAN delete a trailing capital letter
-        else:
-          j += 1
-
-      # We exhausted just one of the lists, so we're 
-      if j >= len(b):
-        # We CAN NOT delete a trailing capital letter
-        if a[i].isupper():
-          return False
-        # We CAN delete a trailing capital letter
-        else:
-          i += 1
-          
-      if (i >= len(a)) or (j >= len(b)):
-        break
-
-      print("line 52: i = ", i)
-      print("line 52: j = ", j)
-
-      # effectively change the letter, if it's lower          
-      if (a[i] == b[j]) or (a[i].upper() == b[j]):
-
-        print("line 58: a[i] = ", a[i])
-        print("line 58: b[j] = ", b[j])
-
-        i += 1
-        j += 1
-
-      # effectively delete the letter, if it's lower          
-      elif a[i].islower():
-          i += 1
-      else:
-        return False
-  
-    return True
  
+# Change first lowercased letter to an upper-case letter
+def upperFirstLower(s):
+ 
+  for i in range(0, len(s)):
+    
+    if s[i].islower():
+      s[i] = s[i].upper()
+      break
+      
+  return s
+  
+# Delete first lower-cased lettter
+def delFirstLower(s):
+  
+  for i in range(0, len(s)):
+ 
+    if s[i].islower():
+      del s[i]
+      break
+ 
+  return s
+  
 def upperOrDelete(frag, target):
-
+  
+    print("\n")
     print("frag = ", frag)
     print("target = ", target)
 
+    # We found a match!
     if "".join(frag) == "".join(target):
       return True
+    
+    # It's not a match, and it can't be modified (because it's all uppercase),
+    # then game over.
+    elif "".join(frag).isupper():
+      return False
 
-    if "".join(frag) == "":
-      return True
-
-    if (frag[0].islower()):
+    frag1 = frag.copy()
+    frag2 = frag.copy()
+    
+    frag1 = upperFirstLower(frag1)
+    frag2 = delFirstLower(frag2)
  
-      if len(frag) > 0:
+    # Uppercased char recursion
+    r1 = upperOrDelete(frag1, target)
 
-        char1 = [frag[0].upper()]
-        frag1 = char1 + frag[1:len(frag)]
-        frag2 =  frag[1:len(frag)]
- 
-        print("frag1 = ", frag1)
-        print("frag2 = ", frag2)
+    # Deleted char recursion
+    r2 = upperOrDelete(frag2, target)
 
-        # Uppercased char recursion
-        r1 = upperOrDelete(frag1, target)
-
-        # Deleted char recursion
-        r2 = upperOrDelete(frag2, target)
-
-      else:
-        return False
-      
-      return r1 or r2
+    return r1 or r2
 
 def abbreviation(a, b):
  
@@ -177,3 +141,4 @@ if __name__ == '__main__':
         fptr.write(result + '\n')
 
     fptr.close()
+
